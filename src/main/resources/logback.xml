@@ -1,0 +1,29 @@
+<configuration>
+
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%date{HH:mm:ss.SSS} %-5level %-40([%thread] %F:%L) %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="org.apache.jackrabbit.oak.plugins.document.DocumentNodeStoreBranch" level="TRACE" additivity="false">
+    <appender-ref ref="console"/>
+  </logger>
+
+  <logger name="org.apache.jackrabbit.oak.plugins.document.DocumentNodeStoreBranch.perf" level="TRACE" additivity="false">
+    <appender-ref ref="console"/>
+  </logger>
+
+  <logger name="org.apache.jackrabbit.oak.plugins.document.Collision" level="TRACE" additivity="false">
+    <appender-ref ref="console"/>
+  </logger>
+
+  <!-- <logger name="org.apache.jackrabbit.oak.plugins.document.mongo.MongoDocumentStore" level="TRACE" additivity="false"> -->
+  <!--   <appender-ref ref="console"/> -->
+  <!-- </logger> -->
+
+  <root level="INFO">
+    <appender-ref ref="console"/>
+  </root>
+
+</configuration>
