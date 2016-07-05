@@ -5,6 +5,8 @@ import com.mongodb.MongoClient;
 import org.apache.jackrabbit.oak.Oak;
 import org.apache.jackrabbit.oak.api.ContentRepository;
 import org.apache.jackrabbit.oak.api.ContentSession;
+import org.apache.jackrabbit.oak.plugins.commit.ConflictValidatorProvider;
+import org.apache.jackrabbit.oak.plugins.commit.JcrConflictHandler;
 import org.apache.jackrabbit.oak.plugins.document.DocumentMK;
 import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore;
 import org.apache.jackrabbit.oak.plugins.nodetype.write.InitialContent;
@@ -37,9 +39,21 @@ public class ClusterNode {
             repository = new Oak(nodeStore).
                     with(new InitialContent()).
                     with(new OpenSecurityProvider()).
+                    with(JcrConflictHandler.createJcrConflictHandler()).
+                    with(new ConflictValidatorProvider()).
                     createContentRepository();
         } catch (UnknownHostException e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void dropDatabase(String dbName) {
+        try {
+            MongoClient client = new MongoClient();
+            client.getDB(dbName).dropDatabase();
+            client.close();
+        } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
     }

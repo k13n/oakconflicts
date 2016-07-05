@@ -23,6 +23,7 @@ public class DistributedConflictExample {
     }
 
     private void setUpExperiment() {
+        ClusterNode.dropDatabase("test2");
         ClusterNode cluster = newClusterNode(1);
         try (ContentSession session = cluster.newSession()) {
             Root rootTree = session.getLatestRoot();

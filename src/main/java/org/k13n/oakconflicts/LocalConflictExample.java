@@ -22,6 +22,7 @@ public class LocalConflictExample {
     }
 
     private void setUpExperiment() {
+        ClusterNode.dropDatabase("test1");
         ClusterNode cluster = newClusterNode();
         try (ContentSession session = cluster.newSession()) {
             Root rootTree = session.getLatestRoot();
