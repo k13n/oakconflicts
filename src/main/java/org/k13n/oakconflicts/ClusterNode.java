@@ -9,6 +9,8 @@ import org.apache.jackrabbit.oak.plugins.commit.ConflictValidatorProvider;
 import org.apache.jackrabbit.oak.plugins.commit.JcrConflictHandler;
 import org.apache.jackrabbit.oak.plugins.document.DocumentMK;
 import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore;
+import org.apache.jackrabbit.oak.plugins.index.property.PropertyIndexEditorProvider;
+import org.apache.jackrabbit.oak.plugins.index.property.PropertyIndexProvider;
 import org.apache.jackrabbit.oak.plugins.nodetype.write.InitialContent;
 import org.apache.jackrabbit.oak.spi.security.OpenSecurityProvider;
 
@@ -41,6 +43,8 @@ public class ClusterNode {
                     with(new OpenSecurityProvider()).
                     with(JcrConflictHandler.createJcrConflictHandler()).
                     with(new ConflictValidatorProvider()).
+                    with(new PropertyIndexEditorProvider()).
+                    with(new PropertyIndexProvider()).
                     createContentRepository();
         } catch (UnknownHostException e) {
             e.printStackTrace();

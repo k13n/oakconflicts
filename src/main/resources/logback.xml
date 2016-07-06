@@ -18,7 +18,15 @@
     <appender-ref ref="console"/>
   </logger>
 
+  <logger name="org.apache.jackrabbit.oak.plugins.commit.ConflictValidator" level="TRACE" additivity="false">
+    <appender-ref ref="console"/>
+  </logger>
+
   <!-- <logger name="org.apache.jackrabbit.oak.plugins.document.mongo.MongoDocumentStore" level="TRACE" additivity="false"> -->
+  <!--   <appender-ref ref="console"/> -->
+  <!-- </logger> -->
+
+  <!-- <logger name="org.apache.jackrabbit.oak.plugins.document.mongo.MongoDocumentStore.perf" level="INFO" additivity="false"> -->
   <!--   <appender-ref ref="console"/> -->
   <!-- </logger> -->
 
