@@ -8,6 +8,7 @@ import javax.jcr.NoSuchWorkspaceException;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.concurrent.Semaphore;
 
 public class LocalConflictInIndexExample {
     private static final Logger logger = LoggerFactory.getLogger(LocalConflictInIndexExample.class);
@@ -88,35 +89,89 @@ public class LocalConflictInIndexExample {
     private void provokeConflicts() {
         ClusterNode cluster = newClusterNode();
 
-        try (ContentSession session1 = cluster.newSession();
-             ContentSession session2 = cluster.newSession()) {
-
-            Root rootTree1 = session1.getLatestRoot();
-            Root rootTree2 = session2.getLatestRoot();
-
-            Tree b = rootTree1.getTree("/a/b");
-            Tree c = rootTree2.getTree("/a/c");
-
-            b.removeProperty(PROPERTY);
-            c.setProperty(PROPERTY, 0);
-
-            logger.info("committing session s1");
-            rootTree1.commit();
-
-            logger.info("committing session s2");
-            rootTree2.commit();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (CommitFailedException e) {
-            e.printStackTrace();
-        } catch (LoginException e) {
-            e.printStackTrace();
-        } catch (NoSuchWorkspaceException e) {
-            e.printStackTrace();
-        } finally {
-            cluster.tearDownRepository();
+        Semaphore semaphore = new Semaphore(2);
+        try {
+            semaphore.acquire(2);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
         }
+
+        Thread t1 = new Thread("session1") {
+            @Override
+            public void run() {
+                try (ContentSession session1 = cluster.newSession()) {
+                    Root rootTree1 = session1.getLatestRoot();
+                    Tree b = rootTree1.getTree("/a/b");
+                    b.removeProperty(PROPERTY);
+
+                    semaphore.acquire();;
+                    logger.info("committing session s1");
+                    rootTree1.commit();
+                    logger.info("session s1 committed");
+
+                } catch (CommitFailedException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (UnknownHostException e1) {
+                    e1.printStackTrace();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (LoginException e1) {
+                    e1.printStackTrace();
+                } catch (NoSuchWorkspaceException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        };
+
+        Thread t2 = new Thread("session2") {
+            @Override
+            public void run() {
+                try (ContentSession session2 = cluster.newSession()) {
+                    Root rootTree2 = session2.getLatestRoot();
+                    Tree c = rootTree2.getTree("/a/c");
+                    c.setProperty(PROPERTY, 0);
+
+                    semaphore.acquire();;
+                    logger.info("committing session s2");
+                    rootTree2.commit();
+                    logger.info("session s2 committed");
+
+                } catch (CommitFailedException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (UnknownHostException e1) {
+                    e1.printStackTrace();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (LoginException e1) {
+                    e1.printStackTrace();
+                } catch (NoSuchWorkspaceException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        };
+
+        t1.start();
+        t2.start();
+
+        semaphore.release(2);
+
+        try {
+            t1.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            t2.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        cluster.tearDownRepository();
     }
 
     private ClusterNode newClusterNode() {
