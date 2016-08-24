@@ -30,6 +30,10 @@
   <!--   <appender-ref ref="console"/> -->
   <!-- </logger> -->
 
+  <!-- <logger name="org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore" level="TRACE" additivity="false"> -->
+  <!--   <appender-ref ref="console"/> -->
+  <!-- </logger> -->
+
   <root level="INFO">
     <appender-ref ref="console"/>
   </root>
