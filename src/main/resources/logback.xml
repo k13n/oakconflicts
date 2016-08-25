@@ -6,21 +6,21 @@
     </encoder>
   </appender>
 
-  <logger name="org.apache.jackrabbit.oak.plugins.document.DocumentNodeStoreBranch" level="TRACE" additivity="false">
-    <appender-ref ref="console"/>
-  </logger>
+  <!-- <logger name="org.apache.jackrabbit.oak.plugins.document.DocumentNodeStoreBranch" level="TRACE" additivity="false"> -->
+  <!--   <appender-ref ref="console"/> -->
+  <!-- </logger> -->
 
-  <logger name="org.apache.jackrabbit.oak.plugins.document.DocumentNodeStoreBranch.perf" level="TRACE" additivity="false">
-    <appender-ref ref="console"/>
-  </logger>
+  <!-- <logger name="org.apache.jackrabbit.oak.plugins.document.DocumentNodeStoreBranch.perf" level="TRACE" additivity="false"> -->
+  <!--   <appender-ref ref="console"/> -->
+  <!-- </logger> -->
 
-  <logger name="org.apache.jackrabbit.oak.plugins.document.Collision" level="TRACE" additivity="false">
-    <appender-ref ref="console"/>
-  </logger>
+  <!-- <logger name="org.apache.jackrabbit.oak.plugins.document.Collision" level="TRACE" additivity="false"> -->
+  <!--   <appender-ref ref="console"/> -->
+  <!-- </logger> -->
 
-  <logger name="org.apache.jackrabbit.oak.plugins.commit.ConflictValidator" level="TRACE" additivity="false">
-    <appender-ref ref="console"/>
-  </logger>
+  <!-- <logger name="org.apache.jackrabbit.oak.plugins.commit.ConflictValidator" level="TRACE" additivity="false"> -->
+  <!--   <appender-ref ref="console"/> -->
+  <!-- </logger> -->
 
   <!-- <logger name="org.apache.jackrabbit.oak.plugins.document.mongo.MongoDocumentStore" level="TRACE" additivity="false"> -->
   <!--   <appender-ref ref="console"/> -->

@@ -70,4 +70,8 @@ public class ClusterNode {
         Credentials credentials = new SimpleCredentials("admin", "admin".toCharArray());
         return repository.login(credentials, "default");
     }
+
+    public int getId() {
+        return id;
+    }
 }
