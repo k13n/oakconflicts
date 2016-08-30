@@ -23,13 +23,13 @@ public class Benchmark {
 
     private final DescriptiveStatistics globalStats;
     private final ClusterNode[] cluster;
-    private final Worker[] workers;
+    private final Workflow[] workflows;
     private LinkedList<ClusterNode> freeClusterNodes;
 
-    public Benchmark(int clusterSize, int nrWorkers) {
+    public Benchmark(int clusterSize, int nrWorkflows) {
         globalStats = new DescriptiveStatistics();
         cluster = new ClusterNode[clusterSize];
-        workers = new Worker[nrWorkers];
+        workflows = new Workflow[nrWorkflows];
         freeClusterNodes = new LinkedList<>();
     }
 
@@ -67,7 +67,7 @@ public class Benchmark {
             freeClusterNodes.add(cluster[i]);
         }
 
-        for (int i = 0; i < workers.length; ++i) {
+        for (int i = 0; i < workflows.length; ++i) {
             ClusterNode clusterNode;
             if (!freeClusterNodes.isEmpty()) {
                 clusterNode = freeClusterNodes.removeFirst();
@@ -75,10 +75,10 @@ public class Benchmark {
                 clusterNode = cluster[ThreadLocalRandom.current().nextInt(0, cluster.length)];
             }
 
-            Worker worker = new Worker(i, clusterNode);
-            worker.setUp();
+            Workflow workflow = new Workflow(i, clusterNode);
+            workflow.setUp();
 
-            workers[i] = worker;
+            workflows[i] = workflow;
         }
 
         Commit.conflictCounter.set(0);
@@ -120,8 +120,8 @@ public class Benchmark {
 
 
     private void runExperiment() {
-        for (int i = 0; i < workers.length; ++i) {
-            workers[i].start();
+        for (int i = 0; i < workflows.length; ++i) {
+            workflows[i].start();
         }
 
         try {
@@ -130,12 +130,12 @@ public class Benchmark {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < workers.length; ++i) {
-            workers[i].interrupted = true;
+        for (int i = 0; i < workflows.length; ++i) {
+            workflows[i].interrupted = true;
         }
-        for (int i = 0; i < workers.length; ++i) {
+        for (int i = 0; i < workflows.length; ++i) {
             try {
-                workers[i].join();
+                workflows[i].join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -144,7 +144,7 @@ public class Benchmark {
 
     private void concludeExperiment() {
         System.out.println("cluster size: " + cluster.length);
-        System.out.println("nr workers: " + workers.length);
+        System.out.println("nr workflows: " + workflows.length);
         System.out.println("N: " + globalStats.getN());
         System.out.println("min: " + globalStats.getMin());
         System.out.println("p10: " + globalStats.getPercentile(10.0));
@@ -152,18 +152,20 @@ public class Benchmark {
         System.out.println("p90: " + globalStats.getPercentile(90.0));
         System.out.println("p99: " + globalStats.getPercentile(99.0));
         System.out.println("max: " + globalStats.getMax());
+        // I had to patch Oak to get this function: Commit.conflictCounter.get()
+        // So it won't compile on vanilla Oak
         System.out.println("#conflicts: " + Commit.conflictCounter.get());
         System.out.println();
-        for (int i = 0; i < workers.length; ++i) {
-            Worker worker = workers[i];
-            System.out.println(worker);
-            System.out.println("commits: " + worker.getTnxCommits());
-            System.out.println("aborts:  " + worker.getTnxAborts());
-            System.out.println("avgRuntime: " + worker.getLocalStats().getMean());
+        for (int i = 0; i < workflows.length; ++i) {
+            Workflow workflow = workflows[i];
+            System.out.println(workflow);
+            System.out.println("commits: " + workflow.getTnxCommits());
+            System.out.println("aborts:  " + workflow.getTnxAborts());
+            System.out.println("avgRuntime: " + workflow.getLocalStats().getMean());
         }
     }
 
-    public class Worker extends Thread {
+    public class Workflow extends Thread {
         private final DescriptiveStatistics localStats;
         private final int id;
         private final ClusterNode clusterNode;
@@ -172,11 +174,11 @@ public class Benchmark {
         private int tnxCommits;
         private int tnxAborts;
 
-        public Worker(int id, ClusterNode clusterNode) {
+        public Workflow(int id, ClusterNode clusterNode) {
             this.id = id;
             this.clusterNode = clusterNode;
             interrupted = false;
-            nodeName = "worker_" + id;
+            nodeName = "Workflow" + id;
             tnxCommits = 0;
             tnxAborts = 0;
             localStats = new DescriptiveStatistics();
@@ -248,7 +250,7 @@ public class Benchmark {
 
         @Override
         public String toString() {
-            return "Worker " + id;
+            return "Workflow " + id;
         }
 
         public DescriptiveStatistics getLocalStats() {
