@@ -16,9 +16,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Benchmark {
     private static final String DB_NAME = "conflicts";
-    private static final String PARENT_NAME = "test";
-    private static final String PROPERTY_NAME = "property";
-    private static final String PROPERTY_VALUE = "value";
+    private static final String PARENT_NAME = "workflows";
+    private static final String PROPERTY_NAME = "status";
+    private static final String PROPERTY_ON = "on";
+    private static final String PROPERTY_OFF = "off";
 
     private final DescriptiveStatistics globalStats;
     private final ClusterNode[] cluster;
@@ -36,6 +37,7 @@ public class Benchmark {
         setUpExperiment();
         runExperiment();
         concludeExperiment();
+        tearDownExperiment();
     }
 
     private void setUpExperiment() {
@@ -109,6 +111,14 @@ public class Benchmark {
         }
     }
 
+    private void tearDownExperiment() {
+        for (int i = 0; i < cluster.length; ++i) {
+            cluster[i].tearDownRepository();
+        }
+        ClusterNode.dropDatabase(DB_NAME);
+    }
+
+
     private void runExperiment() {
         for (int i = 0; i < workers.length; ++i) {
             workers[i].start();
@@ -176,8 +186,16 @@ public class Benchmark {
             try (ContentSession session = clusterNode.newSession()) {
                 Root rootTree = session.getLatestRoot();
                 Tree parent = rootTree.getTree("/" + PARENT_NAME);
-                parent.addChild(nodeName);
+                Tree child  = parent.addChild(nodeName);
+
+                if (Math.random() < 0.5) {
+                    child.setProperty(PROPERTY_NAME, PROPERTY_ON);
+                } else {
+                    child.setProperty(PROPERTY_NAME, PROPERTY_OFF);
+                }
+
                 rootTree.commit();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (CommitFailedException e) {
@@ -198,10 +216,10 @@ public class Benchmark {
                     Root rootTree = session.getLatestRoot();
                     Tree node = rootTree.getTree("/"+PARENT_NAME+"/"+nodeName);
 
-                    if (node.hasProperty(PROPERTY_NAME)) {
-                        node.removeProperty(PROPERTY_NAME);
+                    if (PROPERTY_ON.equals(node.getProperty(PROPERTY_NAME).getValue(Type.STRING))) {
+                        node.setProperty(PROPERTY_NAME, PROPERTY_OFF);
                     } else {
-                        node.setProperty(PROPERTY_NAME, PROPERTY_VALUE);
+                        node.setProperty(PROPERTY_NAME, PROPERTY_ON);
                     }
 
                     rootTree.commit();

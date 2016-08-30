@@ -1,11 +1,9 @@
 package org.k13n.oakconflicts.benchmark;
 
-import java.util.concurrent.TimeUnit;
-
-public class Benchmark1 {
+public class Benchmark3 {
 
     public static void main(String[] args) {
-        int clusterSize = 1;
+        int clusterSize = 3;
         for (int nrWorkers = 1; nrWorkers <= 10; ++nrWorkers) {
             new Benchmark(clusterSize, nrWorkers).execute();
             System.out.println("\n\n\n\n\n\n\n");
