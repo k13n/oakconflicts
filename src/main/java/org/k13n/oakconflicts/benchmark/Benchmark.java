@@ -9,6 +9,8 @@ import org.k13n.oakconflicts.ClusterNode;
 import javax.jcr.NoSuchWorkspaceException;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -143,15 +145,27 @@ public class Benchmark {
     }
 
     private void concludeExperiment() {
+        Arrays.sort(workflows, new Comparator<Workflow>() {
+            @Override
+            public int compare(Workflow w1, Workflow w2) {
+                return w2.getTnxCommits() - w1.getTnxCommits();
+            }
+        });
+
+        int range = workflows[0].getTnxCommits() - workflows[workflows.length-1]
+                .getTnxCommits();
+
         System.out.println("cluster size: " + cluster.length);
         System.out.println("nr workflows: " + workflows.length);
         System.out.println("N: " + globalStats.getN());
+        System.out.println("Range: " + range);
         System.out.println("min: " + globalStats.getMin());
         System.out.println("p10: " + globalStats.getPercentile(10.0));
         System.out.println("p50: " + globalStats.getPercentile(50.0));
         System.out.println("p90: " + globalStats.getPercentile(90.0));
         System.out.println("p99: " + globalStats.getPercentile(99.0));
         System.out.println("max: " + globalStats.getMax());
+
         // I had to patch Oak to get this function: Commit.conflictCounter.get()
         // So it won't compile on vanilla Oak
         System.out.println("#conflicts: " + Commit.conflictCounter.get());

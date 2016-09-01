@@ -1,7 +1,5 @@
 package org.k13n.oakconflicts.benchmark;
 
-import java.util.concurrent.TimeUnit;
-
 public class Benchmark1 {
 
     public static void main(String[] args) {
