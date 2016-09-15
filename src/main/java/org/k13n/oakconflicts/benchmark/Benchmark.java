@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class Benchmark {
@@ -47,6 +46,10 @@ public class Benchmark {
         ClusterNode setUpClusterNode = new ClusterNode(DB_NAME, 1);
         setUpPropertyIndex(setUpClusterNode);
 
+        for (int i = 0; i < workflows.length; ++i) {
+            workflows[i] = new Workflow(i);
+        }
+
         try (ContentSession session = setUpClusterNode.newSession()) {
             Root rootTree = session.getLatestRoot();
             Tree parent = rootTree.getTree("/");
@@ -62,25 +65,24 @@ public class Benchmark {
             e.printStackTrace();
         }
 
+        for (int i = 0; i < workflows.length; ++i) {
+            Workflow workflow = workflows[i];
+            workflow.setClusterNode(setUpClusterNode);
+            workflow.setUp();
+        }
+
         setUpClusterNode.tearDownRepository();
 
         for (int i = 0; i < cluster.length; ++i) {
             cluster[i] = new ClusterNode(DB_NAME, i+10);
-            freeClusterNodes.add(cluster[i]);
         }
 
         for (int i = 0; i < workflows.length; ++i) {
-            ClusterNode clusterNode;
-            if (!freeClusterNodes.isEmpty()) {
-                clusterNode = freeClusterNodes.removeFirst();
-            } else {
-                clusterNode = cluster[ThreadLocalRandom.current().nextInt(0, cluster.length)];
+            int idx = i;
+            if (idx >= cluster.length) {
+                idx = i % cluster.length;
             }
-
-            Workflow workflow = new Workflow(i, clusterNode);
-            workflow.setUp();
-
-            workflows[i] = workflow;
+            workflows[i].setClusterNode(cluster[idx]);
         }
 
         Commit.conflictCounter.set(0);
@@ -182,15 +184,14 @@ public class Benchmark {
     public class Workflow extends Thread {
         private final DescriptiveStatistics localStats;
         private final int id;
-        private final ClusterNode clusterNode;
         private final String nodeName;
+        private ClusterNode clusterNode;
         private boolean interrupted;
         private int tnxCommits;
         private int tnxAborts;
 
-        public Workflow(int id, ClusterNode clusterNode) {
+        public Workflow(int id) {
             this.id = id;
-            this.clusterNode = clusterNode;
             interrupted = false;
             nodeName = "Workflow" + id;
             tnxCommits = 0;
@@ -204,7 +205,7 @@ public class Benchmark {
                 Tree parent = rootTree.getTree("/" + PARENT_NAME);
                 Tree child  = parent.addChild(nodeName);
 
-                if (Math.random() < 0.5) {
+                if (id % 2 == 0) {
                     child.setProperty(PROPERTY_NAME, PROPERTY_ON);
                 } else {
                     child.setProperty(PROPERTY_NAME, PROPERTY_OFF);
@@ -253,6 +254,9 @@ public class Benchmark {
             }
         }
 
+        public void setClusterNode(ClusterNode clusterNode) {
+            this.clusterNode = clusterNode;
+        }
 
         public int getTnxCommits() {
             return tnxCommits;
